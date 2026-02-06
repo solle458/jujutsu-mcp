@@ -1,0 +1,109 @@
+---
+description: Jujutsu (jj) version control best practices
+globs: **/*
+---
+
+# Jujutsu Behavior Policy
+
+## Core Principles
+
+- Always use `jj` commands instead of `git` commands directly
+- Create isolated work units using `jj new` when starting new tasks
+- Commit frequently with meaningful descriptions using `jj describe`
+- Understand the revision graph before making changes
+
+## Workflow Guidelines
+
+### Starting New Work
+
+- When beginning a new task or feature, always create a new change with `jj new`
+- This isolates your work and makes it easier to manage and review
+- Use descriptive commit messages to explain the purpose of each change
+
+### Committing Changes
+
+- Use `jj describe` frequently to add commit messages that explain your intent
+- Write clear, descriptive messages that explain *why* changes were made, not just *what* changed
+- Commit small, logical units of work rather than large monolithic changes
+
+### Conflict Resolution
+
+- When conflicts occur, first use `jj evolog` to understand the change history
+- Analyze conflicts using `jj diff --conflicts` to see what needs to be resolved
+- Understand the intent of both conflicting changes before resolving
+- After resolving conflicts, use `jj squash` to integrate changes cleanly
+
+### Revision Management
+
+- Use revsets (like `@`, `@-`, `main`) to reference revisions
+- Before rebasing or squashing, check the revision graph with `jj log`
+- Use `jj op log` to review operation history if something goes wrong
+- Use `jj op undo` to safely revert operations when needed
+
+### Best Practices
+
+- Never use `git` commands directly - always go through `jj`
+- Keep changes focused and atomic
+- Review the revision graph before complex operations
+- Use descriptive revision messages to document intent
+- When in doubt, check the current status with `jj status`
+
+## GitHub Synchronization
+
+### Pushing Changes
+
+- Use `jj git push --change @-` to push the current change to GitHub
+- Use `jj git push --bookmark <name>` to push a specific bookmark
+- Use `jj git push --all` to push all bookmarks
+- The `--remote` option can specify which remote to push to (defaults to origin)
+
+### Fetching from Remote
+
+- Use `jj git fetch` to fetch the latest changes from GitHub
+- Use `jj git fetch --remote <name>` to fetch from a specific remote
+- Use `jj git fetch --tracked` to fetch only tracked bookmarks
+- Use `jj git fetch --all-remotes` to fetch from all remotes
+
+### Synchronization Workflow
+
+1. **Starting new work**:
+   ```bash
+   jj new -m "Feature: description"
+   ```
+
+2. **Committing changes**:
+   ```bash
+   jj describe -m "Clear commit message explaining why"
+   ```
+
+3. **Pushing to GitHub**:
+   ```bash
+   jj git push --change @-
+   ```
+
+4. **Syncing with remote**:
+   ```bash
+   jj git fetch
+   jj rebase -o main@origin
+   ```
+
+### Bookmark Management
+
+- The `main` bookmark should always be synchronized with GitHub's `main` branch
+- Use `--change` option for automatic bookmark generation when pushing
+- Use descriptive bookmark names when creating pull requests
+- Track remote bookmarks to keep local and remote in sync
+
+### Team Collaboration
+
+- Always fetch before starting new work: `jj git fetch`
+- Rebase onto remote main before pushing: `jj rebase -o main@origin`
+- Use `jj log` to review the revision graph before complex operations
+- Resolve conflicts using `jj diff --conflicts` and `jj evolog`
+
+## Error Recovery
+
+- If an operation fails, check `jj op log` to see what happened
+- Use `jj op undo` to revert to a known good state
+- Review `jj evolog` to understand the evolution of conflicts or issues
+- Always verify the state with `jj status` after recovery operations
