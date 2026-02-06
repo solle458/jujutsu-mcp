@@ -123,6 +123,81 @@ Detect and analyze conflicts in a revision.
 
 ## Configuration
 
+### Cursor MCP Server Setup (Automatic Startup)
+
+To use this MCP server in Cursor with automatic startup, you need to configure it in Cursor's settings.
+
+#### Option 1: Project-Level Configuration (Recommended)
+
+Create a file at `~/.cursor/mcp.json` (or in your project root) with the following content:
+
+```json
+{
+  "mcpServers": {
+    "jujutsu-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "-m",
+        "jujutsu_mcp"
+      ],
+      "cwd": "/path/to/jujutsu-mcp",
+      "env": {
+        "PYTHONPATH": "/path/to/jujutsu-mcp/src"
+      }
+    }
+  }
+}
+```
+
+**Important**: Replace `/path/to/jujutsu-mcp` with the actual absolute path to this project directory.
+
+#### Option 2: Global Configuration
+
+For macOS, edit or create:
+```
+~/Library/Application Support/Code/User/globalStorage/tencent-cloud.coding-copilot/settings/Craft_mcp_settings.json
+```
+
+For Windows:
+```
+%APPDATA%\Code\User\globalStorage\tencent-cloud.coding-copilot\settings\Craft_mcp_settings.json
+```
+
+For Linux:
+```
+~/.config/Code/User/globalStorage/tencent-cloud.coding-copilot/settings/Craft_mcp_settings.json
+```
+
+Add the same configuration as shown in Option 1.
+
+#### Using Nix Environment
+
+If you're using Nix, you can configure it to use the Nix environment:
+
+```json
+{
+  "mcpServers": {
+    "jujutsu-mcp": {
+      "command": "nix",
+      "args": [
+        "develop",
+        "--command",
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "jujutsu_mcp"
+      ],
+      "cwd": "/path/to/jujutsu-mcp"
+    }
+  }
+}
+```
+
+**Note**: Once configured, Cursor will automatically start the MCP server when it launches. You don't need to manually start it each time.
+
 ### Git Authentication Setup
 
 For detailed instructions on setting up Git authentication for GitHub push operations, see [Git Authentication Setup Guide](docs/GIT_AUTHENTICATION_SETUP.md).
