@@ -123,6 +123,16 @@ Detect and analyze conflicts in a revision.
 
 ## Configuration
 
+### Git Authentication Setup
+
+For detailed instructions on setting up Git authentication for GitHub push operations, see [Git Authentication Setup Guide](docs/GIT_AUTHENTICATION_SETUP.md).
+
+The guide covers:
+- SSH key authentication (recommended)
+- Personal Access Token (PAT) setup for HTTPS
+- Troubleshooting authentication issues
+- Best practices for secure authentication
+
 ### Cursor Rules
 
 The project includes Cursor Rules (`.cursor/rules/jujutsu-policy.mdc`) that guide AI agents on best practices when working with Jujutsu:
