@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "jujutsu-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "-m",
+        "jujutsu_mcp"
+      ],
+      "cwd": "/absolute/path/to/jujutsu-mcp",
+      "env": {
+        "PYTHONPATH": "/absolute/path/to/jujutsu-mcp/src"
+      }
+    }
+  }
+}
