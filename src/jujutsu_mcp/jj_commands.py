@@ -40,6 +40,7 @@ def find_jj_repo_root(start_path: Optional[Path] = None) -> Optional[Path]:
     1. Use cached workspace path if available
     2. Check environment variables (CURSOR_WORKSPACE_PATH, WORKSPACE_PATH, PWD)
     3. Use jj root command from start_path or current directory
+    4. Recursively search parent directories for .jj directory (fallback)
     
     Args:
         start_path: Optional starting path for jj root search
@@ -103,6 +104,48 @@ def find_jj_repo_root(start_path: Optional[Path] = None) -> Optional[Path]:
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         logger.debug(f"jj root command failed from {search_path}: {e}")
     
+    # Fallback: Recursively search parent directories for .jj directory
+    # This is useful when MCP server is started from a different directory
+    current = search_path.resolve()
+    max_depth = 20  # Prevent infinite loops
+    depth = 0
+    
+    while depth < max_depth:
+        if (current / ".jj").exists():
+            _workspace_path_cache = current
+            logger.debug(f"Found jj repo root via recursive search: {current}")
+            return current
+        
+        # Try jj root from current directory
+        try:
+            stdout, _ = subprocess.run(
+                ["jj", "root"],
+                cwd=current,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            repo_root = Path(stdout.strip()).resolve()
+            if repo_root.exists():
+                _workspace_path_cache = repo_root
+                logger.debug(f"Found jj repo root via recursive jj root from {current}: {repo_root}")
+                return repo_root
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            pass
+        
+        # Move to parent directory
+        parent = current.parent
+        if parent == current:  # Reached filesystem root
+            break
+        current = parent
+        depth += 1
+    
+    logger.warning(
+        f"Could not find jj repository root. Searched from {search_path} "
+        f"up to {current} (depth {depth}). "
+        f"Environment variables checked: {', '.join(env_vars)}. "
+        f"Consider setting CURSOR_WORKSPACE_PATH or WORKSPACE_PATH environment variable."
+    )
     return None
 
 
@@ -147,9 +190,13 @@ def run_jj_command(
             cwd = repo_root
             logger.debug(f"Using detected workspace path: {cwd}")
         else:
-            # Fallback to current directory
+            # Fallback to current directory, but this will likely fail
             cwd = Path.cwd()
-            logger.debug(f"No workspace path detected, using current directory: {cwd}")
+            logger.warning(
+                f"No jj repository root found. Using current directory: {cwd}. "
+                f"This will likely cause 'There is no jj repo in \".\"' error. "
+                f"Please ensure you're in a jj repository or set CURSOR_WORKSPACE_PATH environment variable."
+            )
     
     cmd = ["jj", *args]
     logger.debug(f"Running command: {' '.join(cmd)} in {cwd}")

@@ -1,135 +1,135 @@
 # Jujutsu MCP Server
 
-MCP (Model Context Protocol) server for Jujutsu (jj) version control system. This server provides AI agents with structured access to Jujutsu's powerful version control capabilities through a set of well-defined tools.
+Jujutsu (jj) バージョン管理システム用のMCP (Model Context Protocol) サーバー。このサーバーは、AIエージェントがJujutsuの強力なバージョン管理機能に構造化されたアクセスを提供する、明確に定義されたツールセットを提供します。
 
-## Features
+## 機能
 
-- **Structured Revision Access**: Get revision logs and details as JSON structures
-- **Smart Operations**: Perform rebases, squashes, and other operations using revsets
-- **Conflict Detection**: Identify and analyze conflicts programmatically
-- **Safe Undo**: Undo operations with full operation history tracking
-- **Status Monitoring**: Get current repository status including conflicts and uncommitted changes
+- **構造化されたリビジョンアクセス**: リビジョンログと詳細をJSON構造として取得
+- **スマート操作**: revsetを使用してリベース、スカッシュ、その他の操作を実行
+- **コンフリクト検出**: プログラム的にコンフリクトを識別・分析
+- **安全なアンドゥ**: 完全な操作履歴追跡で操作をアンドゥ
+- **ステータス監視**: コンフリクトと未コミットの変更を含む現在のリポジトリステータスを取得
 
-## Installation
+## インストール
 
-### Prerequisites
+### 前提条件
 
-- Python 3.11 or higher
-- [Jujutsu](https://github.com/martinvonz/jj) (jj) installed and available in PATH
-- [Nix](https://nixos.org/) (optional, for reproducible development environment)
-- [uv](https://github.com/astral-sh/uv) (Python package manager)
+- Python 3.11以上
+- [Jujutsu](https://github.com/martinvonz/jj) (jj) がインストールされ、PATHで利用可能
+- [Nix](https://nixos.org/) (オプション、再現可能な開発環境用)
+- [uv](https://github.com/astral-sh/uv) (Pythonパッケージマネージャー)
 
-### Using Nix (Recommended)
+### Nixを使用する場合（推奨）
 
-1. Enter the development shell:
+1. 開発シェルに入る:
    ```bash
    nix develop
    ```
 
-2. Install dependencies:
+2. 依存関係をインストール:
    ```bash
    uv sync
    ```
 
-### Manual Installation
+### 手動インストール
 
-1. Install dependencies:
+1. 依存関係をインストール:
    ```bash
    uv sync
    ```
 
-2. Activate the virtual environment:
+2. 仮想環境をアクティベート:
    ```bash
    source .venv/bin/activate
    ```
 
-## Usage
+## 使用方法
 
-### Running the MCP Server
+### MCPサーバーの実行
 
 ```bash
 python -m jujutsu_mcp
 ```
 
-Or using uv:
+または、uvを使用:
 
 ```bash
 uv run python -m jujutsu_mcp
 ```
 
-### MCP Tools
+### MCPツール
 
-The server provides the following tools:
+サーバーは以下のツールを提供します:
 
 #### `get_log`
-Get the revision log as a structured graph.
+リビジョンログを構造化されたグラフとして取得します。
 
-**Parameters:**
-- `limit` (optional): Maximum number of revisions to return
+**パラメータ:**
+- `limit` (オプション): 返すリビジョンの最大数
 
-**Returns:** Revision graph with revisions and current revision
+**戻り値:** リビジョンと現在のリビジョンを含むリビジョングラフ
 
 #### `describe_revision`
-Get detailed information about a specific revision.
+特定のリビジョンの詳細情報を取得します。
 
-**Parameters:**
-- `revision_id`: The revision ID (can be a revset like `@`, `@-`, `main`)
+**パラメータ:**
+- `revision_id`: リビジョンID (`@`, `@-`, `main` などのrevsetも可)
 
-**Returns:** Revision information including description, author, parents, and conflict status
+**戻り値:** 説明、作成者、親、コンフリクトステータスを含むリビジョン情報
 
 #### `smart_rebase`
-Perform a rebase operation using revsets.
+revsetを使用してリベース操作を実行します。
 
-**Parameters:**
-- `source`: Source revision (revset)
-- `destination`: Destination revision (revset)
+**パラメータ:**
+- `source`: ソースリビジョン (revset)
+- `destination`: 宛先リビジョン (revset)
 
-**Returns:** Success message
+**戻り値:** 成功メッセージ
 
 #### `undo_last_op`
-Undo the last operation safely.
+最後の操作を安全にアンドゥします。
 
-**Returns:** Information about the undone operation
+**戻り値:** アンドゥされた操作に関する情報
 
 #### `new_change`
-Create a new change (equivalent to `jj new`).
+新しい変更を作成します (`jj new` と同等)。
 
-**Parameters:**
-- `parent` (optional): Parent revision (revset). Defaults to current working copy.
+**パラメータ:**
+- `parent` (オプション): 親リビジョン (revset)。デフォルトは現在の作業コピー。
 
-**Returns:** New revision ID
+**戻り値:** 新しいリビジョンID
 
 #### `squash_changes`
-Squash changes from one revision into another.
+あるリビジョンの変更を別のリビジョンにスカッシュします。
 
-**Parameters:**
-- `revision`: Revision to squash (revset)
-- `into`: Target revision (revset)
+**パラメータ:**
+- `revision`: スカッシュするリビジョン (revset)
+- `into`: ターゲットリビジョン (revset)
 
-**Returns:** Success message
+**戻り値:** 成功メッセージ
 
 #### `get_status`
-Get the current repository status.
+現在のリポジトリステータスを取得します。
 
-**Returns:** Current revision, uncommitted changes status, and conflicts
+**戻り値:** 現在のリビジョン、未コミットの変更ステータス、コンフリクト
 
 #### `resolve_conflicts`
-Detect and analyze conflicts in a revision.
+リビジョン内のコンフリクトを検出・分析します。
 
-**Parameters:**
-- `revision` (optional): Revision to check (revset, defaults to `@`)
+**パラメータ:**
+- `revision` (オプション): チェックするリビジョン (revset、デフォルトは `@`)
 
-**Returns:** List of conflict information
+**戻り値:** コンフリクト情報のリスト
 
-## Configuration
+## 設定
 
-### Cursor MCP Server Setup (Automatic Startup)
+### Cursor MCPサーバーセットアップ（自動起動）
 
-To use this MCP server in Cursor with automatic startup, you need to configure it in Cursor's settings.
+CursorでこのMCPサーバーを自動起動で使用するには、Cursorの設定で設定する必要があります。
 
-#### Option 1: Project-Level Configuration (Recommended)
+#### オプション1: プロジェクトレベル設定（推奨）
 
-Create a file at `~/.cursor/mcp.json` (or in your project root) with the following content:
+`~/.cursor/mcp.json` (またはプロジェクトルート) に以下の内容でファイルを作成:
 
 ```json
 {
@@ -149,12 +149,41 @@ Create a file at `~/.cursor/mcp.json` (or in your project root) with the followi
 }
 ```
 
-**Important**: 
-- Replace `/path/to/jujutsu-mcp` with the actual absolute path to this project directory.
-- Make sure dependencies are installed by running `uv sync` in the jujutsu-mcp directory first.
-- If `.venv` doesn't exist, run `uv sync` to create it and install dependencies.
+**重要**: 
+- `/path/to/jujutsu-mcp` をこのプロジェクトディレクトリの実際の絶対パスに置き換えてください。
+- まず、jujutsu-mcpディレクトリで `uv sync` を実行して依存関係がインストールされていることを確認してください。
+- `.venv` が存在しない場合は、`uv sync` を実行して作成し、依存関係をインストールしてください。
 
-**Alternative using `uv run`** (if the above doesn't work):
+**ワークスペースパス検出について**: MCPサーバーは複数の方法を使用してjjリポジトリルートを自動検出します:
+1. 環境変数 (`CURSOR_WORKSPACE_PATH`, `WORKSPACE_PATH`, `PWD`)
+2. FastMCPコンテキストメタデータ (利用可能な場合)
+3. 現在のディレクトリからの `jj root` コマンド
+4. `.jj` ディレクトリの再帰的親ディレクトリ検索
+
+別のリポジトリからMCPサーバーを使用していて `Error: There is no jj repo in "."` エラーが発生する場合は、`env` セクションに追加してワークスペースパスを明示的に設定できます:
+
+```json
+{
+  "mcpServers": {
+    "jujutsu-mcp": {
+      "command": "/path/to/jujutsu-mcp/.venv/bin/python",
+      "args": [
+        "-m",
+        "jujutsu_mcp"
+      ],
+      "cwd": "/path/to/jujutsu-mcp",
+      "env": {
+        "PYTHONPATH": "/path/to/jujutsu-mcp/src",
+        "CURSOR_WORKSPACE_PATH": "${workspaceFolder}"
+      }
+    }
+  }
+}
+```
+
+注意: `${workspaceFolder}` はプレースホルダーです。Cursorが自動的に展開する場合もありますが、動作しない場合は、実際のパスを手動で設定するか、自動検出メカニズムに依存する必要があります。
+
+**`uv run` を使用する代替方法** (上記が動作しない場合):
 
 ```json
 {
@@ -171,35 +200,36 @@ Create a file at `~/.cursor/mcp.json` (or in your project root) with the followi
       ],
       "cwd": "/path/to/jujutsu-mcp",
       "env": {
-        "PYTHONPATH": "/path/to/jujutsu-mcp/src"
+        "PYTHONPATH": "/path/to/jujutsu-mcp/src",
+        "CURSOR_WORKSPACE_PATH": "${workspaceFolder}"
       }
     }
   }
 }
 ```
 
-#### Option 2: Global Configuration
+#### オプション2: グローバル設定
 
-For macOS, edit or create:
+macOSの場合、編集または作成:
 ```
 ~/Library/Application Support/Code/User/globalStorage/tencent-cloud.coding-copilot/settings/Craft_mcp_settings.json
 ```
 
-For Windows:
+Windowsの場合:
 ```
 %APPDATA%\Code\User\globalStorage\tencent-cloud.coding-copilot\settings\Craft_mcp_settings.json
 ```
 
-For Linux:
+Linuxの場合:
 ```
 ~/.config/Code/User/globalStorage/tencent-cloud.coding-copilot/settings/Craft_mcp_settings.json
 ```
 
-Add the same configuration as shown in Option 1.
+オプション1と同じ設定を追加してください。
 
-#### Using Nix Environment
+#### Nix環境を使用する場合
 
-If you're using Nix, you can configure it to use the Nix environment:
+Nixを使用している場合、Nix環境を使用するように設定できます:
 
 ```json
 {
@@ -221,111 +251,146 @@ If you're using Nix, you can configure it to use the Nix environment:
 }
 ```
 
-**Note**: Once configured, Cursor will automatically start the MCP server when it launches. You don't need to manually start it each time.
+**注意**: 設定後、Cursorは起動時に自動的にMCPサーバーを起動します。毎回手動で起動する必要はありません。
 
-### Git Authentication Setup
+### トラブルシューティング
 
-For detailed instructions on setting up Git authentication for GitHub push operations, see [Git Authentication Setup Guide](docs/GIT_AUTHENTICATION_SETUP.md).
+#### エラー: "There is no jj repo in \".\""
 
-The guide covers:
-- SSH key authentication (recommended)
-- Personal Access Token (PAT) setup for HTTPS
-- Troubleshooting authentication issues
-- Best practices for secure authentication
+このエラーは、MCPサーバーがjjリポジトリルートを検出できない場合に発生します。サーバーは複数の検出方法を使用します:
+
+1. **環境変数**: `CURSOR_WORKSPACE_PATH`, `WORKSPACE_PATH`, `PWD` をチェック
+2. **FastMCPコンテキスト**: MCPリクエストコンテキストからワークスペースパスを抽出しようと試みる
+3. **jj rootコマンド**: 現在のディレクトリから `jj root` を実行
+4. **再帰的検索**: 親ディレクトリで `.jj` ディレクトリを検索（最大20階層）
+
+**解決方法**:
+
+1. **MCP設定で環境変数を設定**: MCP設定の `env` セクションに `CURSOR_WORKSPACE_PATH` を追加（上記のオプション1を参照）
+
+2. **jjリポジトリにいることを確認**: MCPサーバーは `.jj` ディレクトリを見つける必要があります。使用しているワークスペースが `jj init` で初期化されたjjリポジトリであることを確認してください
+
+3. **MCPサーバーログを確認**: どの検出方法が試行されているかを確認するためにデバッグログを有効化:
+   ```json
+   {
+     "mcpServers": {
+       "jujutsu-mcp": {
+         "command": "/path/to/jujutsu-mcp/.venv/bin/python",
+         "args": ["-m", "jujutsu_mcp"],
+         "env": {
+           "PYTHONPATH": "/path/to/jujutsu-mcp/src",
+           "PYTHONUNBUFFERED": "1"
+         }
+       }
+     }
+   }
+   ```
+
+4. **手動でワークスペースパスを設定**: 自動検出が失敗した場合、MCP設定の環境変数にワークスペースパスを手動で追加できます
+
+### Git認証設定
+
+GitHubへのプッシュ操作のためのGit認証設定の詳細な手順については、[Git認証設定ガイド](docs/GIT_AUTHENTICATION_SETUP.md)を参照してください。
+
+ガイドには以下が含まれます:
+- SSHキー認証（推奨）
+- HTTPS用のPersonal Access Token (PAT) 設定
+- 認証問題のトラブルシューティング
+- 安全な認証のベストプラクティス
 
 ### Cursor Rules
 
-The project includes Cursor Rules (`.cursor/rules/jujutsu-policy.mdc`) that guide AI agents on best practices when working with Jujutsu:
+このプロジェクトには、Jujutsuで作業する際のAIエージェントのベストプラクティスをガイドするCursor Rules (`.cursor/rules/jujutsu-policy.mdc`) が含まれています:
 
-- Always use `jj` commands instead of `git` directly
-- Create isolated work units with `jj new`
-- Commit frequently with meaningful descriptions
-- Understand revision graphs before making changes
-- Use `jj evolog` to understand conflict history
+- 常に `git` を直接使用する代わりに `jj` コマンドを使用
+- `jj new` で分離された作業単位を作成
+- 意味のある説明で頻繁にコミット
+- 変更を行う前にリビジョングラフを理解
+- `jj evolog` を使用してコンフリクト履歴を理解
 
-## Development
+## 開発
 
-### Project Structure
+### プロジェクト構造
 
 ```
 jujutsu-mcp/
-├── flake.nix                 # Nix environment definition
-├── flake.lock                # Nix lock file
-├── pyproject.toml            # Python dependencies
-├── uv.lock                   # uv lock file
+├── flake.nix                 # Nix環境定義
+├── flake.lock                # Nixロックファイル
+├── pyproject.toml            # Python依存関係
+├── uv.lock                   # uvロックファイル
 ├── src/
 │   └── jujutsu_mcp/
 │       ├── __init__.py
-│       ├── __main__.py       # Entry point
-│       ├── server.py         # MCP server implementation
-│       ├── jj_commands.py    # jj command execution logic
-│       └── models.py          # Data models
-├── tests/                    # Test files
+│       ├── __main__.py       # エントリーポイント
+│       ├── server.py         # MCPサーバー実装
+│       ├── jj_commands.py    # jjコマンド実行ロジック
+│       └── models.py          # データモデル
+├── tests/                    # テストファイル
 └── .cursor/
     └── rules/
         └── jujutsu-policy.mdc # Cursor Rules
 ```
 
-### Running Tests
+### テストの実行
 
 ```bash
 uv run pytest
 ```
 
-### Code Formatting
+### コードフォーマット
 
 ```bash
 uv run ruff check .
 uv run ruff format .
 ```
 
-## Architecture
+## アーキテクチャ
 
-The project follows a 4-layer architecture:
+このプロジェクトは4層アーキテクチャに従います:
 
-1. **Infrastructure Layer (Nix)**: Reproducible development environment
-2. **Logic Layer (MCP Server)**: Structured JSON access to jj commands
-3. **Policy Layer (.mdc Rules)**: Agent behavior guidelines
-4. **Execution Layer**: Advanced workflows (conflict resolution, time travel)
+1. **インフラストラクチャ層 (Nix)**: 再現可能な開発環境
+2. **ロジック層 (MCPサーバー)**: jjコマンドへの構造化されたJSONアクセス
+3. **ポリシー層 (.mdc Rules)**: エージェントの動作ガイドライン
+4. **実行層**: 高度なワークフロー（コンフリクト解決、タイムトラベル）
 
-## License
+## ライセンス
 
 Apache License 2.0
 
-## Contributing
+## コントリビューション
 
-This project uses Jujutsu for version control and GitHub for collaboration. When contributing:
+このプロジェクトはバージョン管理にJujutsuを使用し、コラボレーションにGitHubを使用しています。コントリビューションする際は:
 
-1. **Start new work**: Create a new change with `jj new -m "Feature: description"`
-2. **Make your changes**: Edit files as needed
-3. **Commit frequently**: Use `jj describe -m "Clear commit message"` to add meaningful commit messages
-4. **Sync with remote**: Fetch latest changes with `jj git fetch` and rebase if needed
-5. **Push to GitHub**: Use `jj git push --change @-` to push your changes
-6. **Integrate changes**: Use `jj squash` to integrate related changes before pushing
+1. **新しい作業を開始**: `jj new -m "Feature: description"` で新しい変更を作成
+2. **変更を行う**: 必要に応じてファイルを編集
+3. **頻繁にコミット**: `jj describe -m "明確なコミットメッセージ"` を使用して意味のあるコミットメッセージを追加
+4. **リモートと同期**: `jj git fetch` で最新の変更を取得し、必要に応じてリベース
+5. **GitHubにプッシュ**: `jj git push --change @-` を使用して変更をプッシュ
+6. **変更を統合**: プッシュ前に `jj squash` を使用して関連する変更を統合
 
-### Development Workflow
+### 開発ワークフロー
 
 ```bash
-# Start a new feature
+# 新しい機能を開始
 jj new -m "Feature: add new functionality"
 
-# Make changes and commit frequently
+# 変更を行い、頻繁にコミット
 jj describe -m "Implement core logic"
 jj describe -m "Add error handling"
 
-# Sync with remote before pushing
+# プッシュ前にリモートと同期
 jj git fetch
 jj rebase -o main@origin
 
-# Push to GitHub
+# GitHubにプッシュ
 jj git push --change @-
 ```
 
-### GitHub Synchronization
+### GitHub同期
 
-- **Push changes**: `jj git push --change @-` (pushes current change)
-- **Push bookmark**: `jj git push --bookmark <name>` (pushes specific bookmark)
-- **Fetch updates**: `jj git fetch` (fetches from remote)
-- **Sync workflow**: `jj git fetch && jj rebase -o main@origin` (fetch and rebase)
+- **変更をプッシュ**: `jj git push --change @-` (現在の変更をプッシュ)
+- **ブックマークをプッシュ**: `jj git push --bookmark <name>` (特定のブックマークをプッシュ)
+- **更新を取得**: `jj git fetch` (リモートから取得)
+- **同期ワークフロー**: `jj git fetch && jj rebase -o main@origin` (取得してリベース)
 
-See `.cursor/rules/jujutsu-policy.mdc` for detailed guidelines and best practices.
+詳細なガイドラインとベストプラクティスについては、`.cursor/rules/jujutsu-policy.mdc` を参照してください。
