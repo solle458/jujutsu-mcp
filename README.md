@@ -135,10 +135,8 @@ Create a file at `~/.cursor/mcp.json` (or in your project root) with the followi
 {
   "mcpServers": {
     "jujutsu-mcp": {
-      "command": "uv",
+      "command": "/path/to/jujutsu-mcp/.venv/bin/python",
       "args": [
-        "run",
-        "python",
         "-m",
         "jujutsu_mcp"
       ],
@@ -151,7 +149,34 @@ Create a file at `~/.cursor/mcp.json` (or in your project root) with the followi
 }
 ```
 
-**Important**: Replace `/path/to/jujutsu-mcp` with the actual absolute path to this project directory.
+**Important**: 
+- Replace `/path/to/jujutsu-mcp` with the actual absolute path to this project directory.
+- Make sure dependencies are installed by running `uv sync` in the jujutsu-mcp directory first.
+- If `.venv` doesn't exist, run `uv sync` to create it and install dependencies.
+
+**Alternative using `uv run`** (if the above doesn't work):
+
+```json
+{
+  "mcpServers": {
+    "jujutsu-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/path/to/jujutsu-mcp",
+        "python",
+        "-m",
+        "jujutsu_mcp"
+      ],
+      "cwd": "/path/to/jujutsu-mcp",
+      "env": {
+        "PYTHONPATH": "/path/to/jujutsu-mcp/src"
+      }
+    }
+  }
+}
+```
 
 #### Option 2: Global Configuration
 
