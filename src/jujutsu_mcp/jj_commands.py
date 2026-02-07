@@ -1,6 +1,7 @@
 """Jujutsu command execution utilities."""
 
 import json
+import os
 import subprocess
 import logging
 from typing import Optional
@@ -17,6 +18,9 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
+# Global cache for workspace path (per session)
+_workspace_path_cache: Optional[Path] = None
+
 
 class JujutsuCommandError(Exception):
     """Exception raised when a jj command fails."""
@@ -26,6 +30,95 @@ class JujutsuCommandError(Exception):
         self.returncode = returncode
         self.stderr = stderr
         super().__init__(f"jj command failed: {command} (exit code {returncode})\n{stderr}")
+
+
+def find_jj_repo_root(start_path: Optional[Path] = None) -> Optional[Path]:
+    """
+    Find the root directory of a jj repository.
+    
+    Tries multiple methods in order:
+    1. Use cached workspace path if available
+    2. Check environment variables (CURSOR_WORKSPACE_PATH, WORKSPACE_PATH, PWD)
+    3. Use jj root command from start_path or current directory
+    
+    Args:
+        start_path: Optional starting path for jj root search
+        
+    Returns:
+        Path to jj repository root, or None if not found
+    """
+    global _workspace_path_cache
+    
+    # Use cached path if available
+    if _workspace_path_cache is not None and _workspace_path_cache.exists():
+        return _workspace_path_cache
+    
+    # Try environment variables
+    env_vars = ["CURSOR_WORKSPACE_PATH", "WORKSPACE_PATH", "PWD"]
+    for env_var in env_vars:
+        env_path = os.environ.get(env_var)
+        if env_path:
+            try:
+                path = Path(env_path).resolve()
+                # Check if this path or a parent contains .jj directory
+                if (path / ".jj").exists():
+                    _workspace_path_cache = path
+                    logger.debug(f"Found jj repo root from {env_var}: {path}")
+                    return path
+                # Try jj root from this path
+                try:
+                    stdout, _ = subprocess.run(
+                        ["jj", "root"],
+                        cwd=path,
+                        capture_output=True,
+                        text=True,
+                        check=True,
+                    )
+                    repo_root = Path(stdout.strip()).resolve()
+                    if repo_root.exists():
+                        _workspace_path_cache = repo_root
+                        logger.debug(f"Found jj repo root via jj root from {env_var}: {repo_root}")
+                        return repo_root
+                except (subprocess.CalledProcessError, FileNotFoundError):
+                    continue
+            except Exception as e:
+                logger.debug(f"Error checking {env_var}: {e}")
+                continue
+    
+    # Try jj root command from start_path or current directory
+    search_path = start_path if start_path else Path.cwd()
+    try:
+        stdout, _ = subprocess.run(
+            ["jj", "root"],
+            cwd=search_path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        repo_root = Path(stdout.strip()).resolve()
+        if repo_root.exists():
+            _workspace_path_cache = repo_root
+            logger.debug(f"Found jj repo root via jj root from {search_path}: {repo_root}")
+            return repo_root
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.debug(f"jj root command failed from {search_path}: {e}")
+    
+    return None
+
+
+def set_workspace_path(path: Optional[Path]) -> None:
+    """
+    Set the workspace path explicitly (useful for MCP context).
+    
+    Args:
+        path: Path to the workspace root, or None to clear cache
+    """
+    global _workspace_path_cache
+    _workspace_path_cache = path
+    if path:
+        logger.debug(f"Workspace path set to: {path}")
+    else:
+        logger.debug("Workspace path cache cleared")
 
 
 def run_jj_command(
@@ -38,7 +131,7 @@ def run_jj_command(
 
     Args:
         args: Command arguments (without 'jj' prefix)
-        cwd: Working directory (defaults to current directory)
+        cwd: Working directory (defaults to detected workspace path or current directory)
         capture_output: Whether to capture output
 
     Returns:
@@ -47,8 +140,19 @@ def run_jj_command(
     Raises:
         JujutsuCommandError: If the command fails
     """
+    # If cwd is not specified, try to find jj repo root
+    if cwd is None:
+        repo_root = find_jj_repo_root()
+        if repo_root:
+            cwd = repo_root
+            logger.debug(f"Using detected workspace path: {cwd}")
+        else:
+            # Fallback to current directory
+            cwd = Path.cwd()
+            logger.debug(f"No workspace path detected, using current directory: {cwd}")
+    
     cmd = ["jj", *args]
-    logger.debug(f"Running command: {' '.join(cmd)}")
+    logger.debug(f"Running command: {' '.join(cmd)} in {cwd}")
 
     try:
         result = subprocess.run(
